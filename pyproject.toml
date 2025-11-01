@@ -9,9 +9,11 @@ readme = "README.md"
 python = "^3.11"
 pyflakes = "^3.2.0"
 xian-contracting = ">=0.5.0,<2.0.0"
+fastapi = {version = ">=0.115.6,<0.116.0", optional = true}
+uvicorn = {version = ">=0.34.0", optional = true}
 
 [tool.poetry.extras]
-server = ["fastapi>=0.115.6,<0.116.0", "uvicorn>=0.34.0"]
+server = ["fastapi", "uvicorn"]
 
 [build-system]
 requires = ["poetry-core"]
