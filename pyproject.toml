@@ -10,7 +10,7 @@ python = "^3.11"
 fastapi = "^0.115.6"
 uvicorn = "^0.34.0"
 pyflakes = "^3.2.0"
-xian-contracting = "^0.5.0"
+xian-contracting = ">=0.5.0,<2.0.0"
 
 
 [build-system]
