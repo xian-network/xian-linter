@@ -1,22 +1,21 @@
 [tool.poetry]
 name = "xian-linter"
-version = "0.2.3"
+version = "0.2.4"
 description = ""
 authors = ["Endogen <endogen@xian.org>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.115.6"
-uvicorn = "^0.34.0"
 pyflakes = "^3.2.0"
 xian-contracting = ">=0.5.0,<2.0.0"
 
+[tool.poetry.extras]
+server = ["fastapi>=0.115.6,<0.116.0", "uvicorn>=0.34.0"]
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
 
 [tool.poetry.scripts]
 xian-linter = "xian_linter.linter:run_server"
