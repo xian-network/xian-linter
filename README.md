@@ -3,60 +3,111 @@
 [![PyPI version](https://badge.fury.io/py/xian-linter.svg)](https://badge.fury.io/py/xian-linter)
 [![Python versions](https://img.shields.io/pypi/pyversions/xian-linter.svg)](https://pypi.org/project/xian-linter/)
 
-A FastAPI service that provides Python code linting specifically designed for Xian smart contracts. It combines PyFlakes for general Python linting with a custom Contracting linter to ensure contract code follows specific rules and patterns.
+A Python code linter specifically designed for Xian smart contracts. It combines PyFlakes for general Python linting with a custom Contracting linter to ensure contract code follows specific rules and patterns.
+
+The linter can be used in two ways:
+- **Inline/Programmatic**: Import and use directly in your Python code without any server dependencies
+- **Standalone Server**: Run as a FastAPI service with HTTP endpoints for remote linting
 
 ## Features
 
-- Base64 and Gzip encoded code input support
-- Parallel execution of linters
+- Parallel execution of linters (PyFlakes + Contracting)
 - Deduplication of error messages
 - Configurable whitelist patterns for ignored errors
 - Standardized error reporting format
-- Input validation and size limits
+- Base64 and Gzip encoded code input support (server mode)
+- Input validation and size limits (server mode)
 
 ## Installation
 
-You can install the linter in two ways:
+### For Inline/Programmatic Usage
 
-### 1. Using pip
+Install the base package without server dependencies:
+
 ```bash
 pip install xian-linter
 ```
 
-### 2. From source
+### For Standalone Server Mode
+
+Install with the server extras to include FastAPI and uvicorn:
+
+```bash
+pip install xian-linter[server]
+```
+
+### From Source
+
 ```bash
 # Clone the repository
 git clone https://github.com/xian-network/xian-linter.git
 cd xian-linter
 
-# Install dependencies using Poetry
+# Install base dependencies using Poetry
 poetry install
+
+# Or install with server extras
+poetry install --extras server
 ```
 
 ## Usage
 
-There are several ways to run the linter server:
+### Inline/Programmatic Usage
 
-### If installed via pip:
+Use the linter directly in your Python code without running a server:
 
-1. Using the command-line script:
+```python
+from xian_linter import lint_code_inline
+
+# Your contract code as a string
+contract_code = """
+def transfer():
+    sender_balance = balances[ctx.caller]
+    balances[ctx.caller] -= amount
+"""
+
+# Lint the code
+errors = lint_code_inline(contract_code)
+
+# Check results
+if errors:
+    for error in errors:
+        print(f"Line {error.position.line}: {error.message}")
+else:
+    print("No errors found!")
+```
+
+You can also provide custom whitelist patterns:
+
+```python
+errors = lint_code_inline(
+    contract_code,
+    whitelist_patterns=['custom_pattern', 'another_pattern']
+)
+```
+
+### Standalone Server Mode
+
+Run the linter as a FastAPI service (requires `[server]` extras):
+
+#### Using the command-line script:
 ```bash
 xian-linter
 ```
 
-2. Using Python's module syntax:
+#### Using Python's module syntax:
 ```bash
 python -m xian_linter
 ```
 
-3. Using uvicorn directly:
+#### Using uvicorn directly:
 ```bash
-uvicorn xian_linter.linter:app --host 0.0.0.0 --port 8000
+uvicorn xian_linter.server:app --host 0.0.0.0 --port 8000
 ```
 
-### If installed from source using Poetry:
+#### From source using Poetry:
 ```bash
-poetry run python xian_linter/linter.py
+poetry run xian-linter
 ```
 
 The server will start on `http://localhost:8000` by default.
@@ -104,3 +155,12 @@ curl -X POST "http://localhost:8000/lint_gzip" -H "Content-Type: application/gzi
 ```
 
 The `position` field is optional and may not be present for global errors.
+
+## Default Whitelist Patterns
+
+The following patterns are ignored by default in Pyflakes checks:
+- `export`, `construct`
+- `Hash`, `Variable`, `ForeignHash`, `ForeignVariable`
+- `ctx`, `now`, `block_num`, `block_hash`, `chain_id`
+- `random`, `importlib`, `hashlib`, `datetime`, `crypto`, `decimal`
+- `Any`, `LogEvent`
