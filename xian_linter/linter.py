@@ -7,7 +7,7 @@ import re
 
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Optional, List, Set
+from typing import Iterable, List, Optional, Set
 from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from io import StringIO
@@ -237,6 +237,36 @@ def get_whitelist_patterns(patterns_str: Optional[str] = None) -> frozenset:
     if not patterns_str:
         return settings.DEFAULT_WHITELIST_PATTERNS
     return frozenset(patterns_str.split(","))
+
+
+def lint_code_inline(code: str, whitelist_patterns: Iterable[str] | None = None, ) -> list[LintError_Model]:
+    """Run the linters synchronously inside the current process.
+
+    Args:
+        code: Contract source to lint.
+        whitelist_patterns: Optional iterable of substrings that should suppress
+            matching Pyflakes diagnostics (mirrors the API exposed by the HTTP
+            endpoints). When omitted the default whitelist is used.
+
+    Returns:
+        A list of LintError_Model instances describing the violations.
+    """
+    patterns = (
+        frozenset(whitelist_patterns)
+        if whitelist_patterns is not None
+        else get_whitelist_patterns()
+    )
+
+    loop = asyncio.new_event_loop()
+    try:
+        asyncio.set_event_loop(loop)
+        errors = loop.run_until_complete(lint_code(code, patterns))
+    finally:
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.close()
+        asyncio.set_event_loop(None)
+
+    return [convert_lint_error_to_model(error) for error in errors]
 
 
 async def lint_code(code: str, whitelist_patterns: Set[str]) -> List[LintError]:
