@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xian-linter"
-version = "0.2.4"
+version = "0.2.5"
 description = ""
 authors = ["Endogen <endogen@xian.org>"]
 readme = "README.md"
@@ -20,4 +20,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-xian-linter = "xian_linter.linter:run_server"
+xian-linter = "xian_linter.server:run_server"
